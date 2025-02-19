@@ -59,7 +59,7 @@ const Home = () => {
 
   return (
     <div className="">
-      <nav className="bg-slate-500 flex justify-between p-4 items-center">
+      {/* <nav className="bg-slate-500 flex justify-between p-4 items-center">
         <div className="logo">
           <Link to="/" className="text-purple">
             <h1>
@@ -122,7 +122,7 @@ const Home = () => {
         <div className="text-lg font-semibold">
           <Link to="/Signup">Signup</Link>
         </div>
-      </nav>
+      </nav> */}
       <Outlet></Outlet>
       <main className="home-content">
         <div className="bg-gradient-to-b from-white to-[#B9CFE5] min-h-96 flex items-center justify-center px-6 ">
