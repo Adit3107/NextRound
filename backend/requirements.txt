@@ -1,0 +1,14 @@
+streamlit
+google-generativeai
+python-dotenv
+langchain
+PyPDF2
+chromadb
+faiss-cpu
+langchain_google_genai
+langchain-community
+flask-pymongo
+flask==2.2.5
+flask-restful
+flask-mongoengine
+flask-bcrypt
