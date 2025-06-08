@@ -4,7 +4,6 @@ import { FormProvider, useForm } from "react-hook-form";
 
 import { Interview } from "@/types";
 
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
@@ -26,6 +25,7 @@ import { chatSession } from "@/scripts";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   serverTimestamp,
   updateDoc,
@@ -73,13 +73,8 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
     : { title: "Created..!", description: "New Mock Interview created..." };
 
   const cleanAiResponse = (responseText: string) => {
-    // Step 1: Trim any surrounding whitespace
     let cleanText = responseText.trim();
-
-    // Step 2: Remove any occurrences of "json" or code block symbols (``` or `)
     cleanText = cleanText.replace(/(json|```|`)/g, "");
-
-    // Step 3: Extract a JSON array by capturing text between square brackets
     const jsonArrayMatch = cleanText.match(/\[.*\]/s);
     if (jsonArrayMatch) {
       cleanText = jsonArrayMatch[0];
@@ -87,7 +82,6 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
       throw new Error("No JSON array found in response");
     }
 
-    // Step 4: Parse the clean JSON text into an array of objects
     try {
       return JSON.parse(cleanText);
     } catch (error) {
@@ -96,40 +90,24 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
   };
 
   const generateAiResponse = async (data: FormData) => {
-    // const prompt = `
-    //     As an experienced prompt engineer, generate a JSON array containing 5 technical interview questions along with detailed answers based on the following job information. Each object in the array should have the fields "question" and "answer", formatted as follows:
-
-    //     [
-    //       { "question": "<Question text>", "answer": "<Answer text>" },
-    //       ...
-    //     ]
-
-    //     Job Information:
-    //     - Job Position: ${data?.position}
-    //     - Job Description: ${data?.description}
-    //     - Years of Experience Required: ${data?.experience}
-    //     - Tech Stacks: ${data?.techStack}
-
-    //     The questions should assess skills in ${data?.techStack} development and best practices, problem-solving, and experience handling complex requirements. Please format the output strictly as an array of JSON objects without any additional labels, code blocks, or explanations. Return only the JSON array with questions and answers.
-
     const prompt = `
-        As an experienced prompt engineer, generate a JSON array containing 5 very basic interview questions that require only one-word answers based on the following job information. Each object in the array should have the fields "question" and "answer", formatted as follows:
+      As an experienced prompt engineer, generate a JSON array containing 5 very basic interview questions that require only one-sentence answers based on the following job information. Each object in the array should have the fields "question" and "answer", formatted as follows:
 
-        [
-          { "question": "<Basic question text>", "answer": "<One-word answer>" },
-          ...
-        ]
+      [
+        { "question": "<Basic question text>", "answer": "<One-word answer>" },
+        ...
+      ]
 
-        Job Information:
-        - Job Position: ${data?.position}
-        - Years of Experience Required: ${data?.experience}
-        - Tech Stacks: ${data?.techStack}
+      Job Information:
+      - Job Position: ${data?.position}
+      - Job Description: ${data?.description}
+      - Years of Experience Required: ${data?.experience}
+      - Tech Stacks: ${data?.techStack}
 
-        The questions should be extremely beginner-friendly and focus on fundamental concepts, basic terminology, and quick recall in ${data?.techStack}. Ensure that answers are strictly one word. 
+      The questions should be extremely beginner-friendly and focus on fundamental concepts, basic terminology, and quick recall in ${data?.techStack}. Ensure that answers are strictly one word. 
 
-        Please format the output strictly as an array of JSON objects without any additional labels, code blocks, or explanations. Return only the JSON array.
-        `;
-
+      Please format the output strictly as an array of JSON objects without any additional labels, code blocks, or explanations. Return only the JSON array.
+    `;
 
     const aiResult = await chatSession.sendMessage(prompt);
     const cleanedResponse = cleanAiResponse(aiResult.response.text());
@@ -150,7 +128,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
             questions: aiResult,
             ...data,
             updatedAt: serverTimestamp(),
-          }).catch((error) => console.log(error));
+          });
           toast(toastMessage.title, { description: toastMessage.description });
         }
       } else {
@@ -180,6 +158,31 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this interview?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, "interviews", initialData.id));
+      toast("Deleted..!", {
+        description: "Interview deleted successfully.",
+      });
+      navigate("/generate", { replace: true });
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast.error("Error..", {
+        description: "Failed to delete the interview. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (initialData) {
       form.reset({
@@ -202,15 +205,18 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         <Headings title={title} isSubHeading />
 
         {initialData && (
-          <Button size={"icon"} variant={"ghost"}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleDelete}
+            disabled={loading}
+          >
             <Trash2 className="min-w-4 min-h-4 text-red-500" />
           </Button>
         )}
       </div>
 
       <Separator className="my-4" />
-
-      <div className="my-6"></div>
 
       <FormProvider {...form}>
         <form
@@ -239,7 +245,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
             )}
           />
 
-          {/* <FormField
+          <FormField
             control={form.control}
             name="description"
             render={({ field }) => (
@@ -252,14 +258,14 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
                   <Textarea
                     className="h-12"
                     disabled={loading}
-                    placeholder="eg:- describle your job role"
+                    placeholder="eg:- describe your job role"
                     {...field}
                     value={field.value || ""}
                   />
                 </FormControl>
               </FormItem>
             )}
-          /> */}
+          />
 
           <FormField
             control={form.control}

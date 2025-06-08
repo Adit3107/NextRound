@@ -15,6 +15,10 @@ import { Dashboard } from "./routes/dashboard"
 import { MockLoadPage } from "./routes/mock-load-page"
 import { MockInterviewPage } from "./routes/mock-interview-page"
 import { Feedback } from "./routes/feedback"
+import Profile from "./routes/profile"
+import { About } from "./routes/about"
+
+
 
 
 
@@ -46,6 +50,8 @@ const App = () => {
           }
         >
           {/* add all the protect routes */}
+          <Route path="/profile" element={<Profile/>} />
+          <Route path="/about" element={<About/>} />
           <Route element={<Generate />} path="/generate" >
             <Route index element={<Dashboard />} />
             <Route path=":interviewId" element={<CreatePage/>} />

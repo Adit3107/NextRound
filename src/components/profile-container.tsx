@@ -3,6 +3,7 @@ import { Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 
+
 const ProfileContainer = () => {
 
     const {isSignedIn, isLoaded} = useAuth();
@@ -17,14 +18,20 @@ const ProfileContainer = () => {
 
   return (
     <div className="flex items-center gap-6">
-        {isSignedIn ? (
-            <UserButton/>
-        ): (
-            <Link to={"/signin"}> 
-            <Button size={"sm"}>Get Started</Button>
-            </Link>
-        )}
-    </div>
+  {isSignedIn ? (
+    <>
+      <Link to="/profile">
+        <Button size="sm" variant="outline">Profile</Button>
+      </Link>
+      <UserButton />
+    </>
+  ) : (
+    <Link to="/signin">
+      <Button size="sm">Get Started</Button>
+    </Link>
+  )}
+</div>
+
     )
 }
 

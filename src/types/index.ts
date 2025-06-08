@@ -30,6 +30,7 @@ export interface UserAnswer {
   feedback: string;
   rating: number;
   userId: string;
+  improvementPoints?: string[];
   createdAt: Timestamp;
   updateAt: Timestamp;
 }

@@ -5,10 +5,6 @@ export const MainRoutes = [
     },
     
     {
-      label: "Upgrade",
-      href: "/upgrade",
-    },
-    {
       label: "About Us",
       href: "/about",
     },
